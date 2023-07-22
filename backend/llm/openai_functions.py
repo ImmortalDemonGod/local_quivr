@@ -171,8 +171,8 @@ class OpenAIFunctionsBrainPicking(BaseBrainPicking):
 
         system_messages.append({"role": "user", "content": question})
 
-        # Log system messages
-        logger.info("System messages: %s", system_messages)
+        # Print system messages to the console
+        print("System messages: ", system_messages)
 
         return system_messages
 
