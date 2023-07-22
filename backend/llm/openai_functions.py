@@ -137,6 +137,12 @@ class OpenAIFunctionsBrainPicking(BaseBrainPicking):
             query=question
         )  # pyright: ignore reportPrivateUsage=none
 
+    def _context_can_answer_question(self, question: str, context: str) -> bool:
+        # Implement your logic here to check if the context can answer the question
+        # For example, you might check if the context contains certain keywords from the question
+        # Return True if the context can answer the question, False otherwise
+        pass
+
     def _construct_prompt(
         self, question: str, useContext: bool = False, useHistory: bool = False
     ) -> List[Dict[str, str]]:
@@ -169,17 +175,20 @@ class OpenAIFunctionsBrainPicking(BaseBrainPicking):
         system_messages.append({"role": "user", "content": question})
 
         # Check if the context can't answer the question
-        if useContext and not self._context_can_answer_question(question):
-            # Generate questions that if answered could be used to satisfy the question
-            questions = self._generate_questions(question)
+        if useContext:
+            context = self._get_context(question)
+            if not self._context_can_answer_question(question, context):
+                logger.info("Context can't answer the question, performing more database queries")
+                # Generate questions that if answered could be used to satisfy the question
+                questions = self._generate_questions(question)
 
-            # Query the database with each question
-            contexts = self._get_contexts(questions)
+                # Query the database with each question
+                contexts = self._get_contexts(questions)
 
-            # Re-attempt to answer the question using the results of the database results
-            answer = self._get_best_answer(question, contexts)
+                # Re-attempt to answer the question using the results of the database results
+                answer = self._get_best_answer(question, contexts)
 
-            system_messages.append({"role": "assistant", "content": answer})
+                system_messages.append({"role": "assistant", "content": answer})
 
         return system_messages
 
