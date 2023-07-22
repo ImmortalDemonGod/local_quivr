@@ -175,7 +175,7 @@ class OpenAIFunctionsBrainPicking(BaseBrainPicking):
 
     def generate_answer(self, question: str) -> ChatHistory:
         """
-        Main function to get an answer for the given question
+        Main function to get an answer for the given question.
         """
         logger.info("Getting answer")
         functions = [
