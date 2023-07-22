@@ -140,9 +140,6 @@ class OpenAIFunctionsBrainPicking(BaseBrainPicking):
     def _construct_prompt(
         self, question: str, useContext: bool = False, useHistory: bool = False
     ) -> List[Dict[str, str]]:
-        """
-        Constructs a prompt given a question, and optionally include context and history
-        """
         logger.info("Constructing prompt")
         system_messages = [
             {
@@ -171,8 +168,18 @@ class OpenAIFunctionsBrainPicking(BaseBrainPicking):
 
         system_messages.append({"role": "user", "content": question})
 
-        # Print system messages to the console
-        print("System messages: ", system_messages)
+        # Check if the context can't answer the question
+        if useContext and not self._context_can_answer_question(question):
+            # Generate questions that if answered could be used to satisfy the question
+            questions = self._generate_questions(question)
+
+            # Query the database with each question
+            contexts = self._get_contexts(questions)
+
+            # Re-attempt to answer the question using the results of the database results
+            answer = self._get_best_answer(question, contexts)
+
+            system_messages.append({"role": "assistant", "content": answer})
 
         return system_messages
 
