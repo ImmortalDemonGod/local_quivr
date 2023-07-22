@@ -229,13 +229,19 @@ class OpenAIFunctionsBrainPicking(BaseBrainPicking):
             and formatted_response.function_call.name == "get_history_and_context"
         ):
             logger.info("Model called for history and context")
-            response = self._get_model_response(
-                messages=self._construct_prompt(
-                    question, useContext=True, useHistory=True
-                ),
-                functions=[],
-            )
-            formatted_response = format_answer(response)
+            context = self._get_context(question)
+            if not self._context_can_answer_question(question, context):
+                logger.info("Context can't answer the question, performing more database queries")
+                # Generate questions that if answered could be used to satisfy the question
+                questions = self._generate_questions(question)
+
+                # Query the database with each question
+                contexts = self._get_contexts(questions)
+
+                # Re-attempt to answer the question using the results of the database results
+                answer = self._get_best_answer(question, contexts)
+
+                formatted_response.content = answer
 
         # Update chat history
         chat_history = update_chat_history(
