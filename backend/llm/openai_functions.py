@@ -171,6 +171,9 @@ class OpenAIFunctionsBrainPicking(BaseBrainPicking):
 
         system_messages.append({"role": "user", "content": question})
 
+        # Print system messages to the console
+        print("System messages: ", system_messages)
+
         return system_messages
 
     def generate_answer(self, question: str) -> ChatHistory:
