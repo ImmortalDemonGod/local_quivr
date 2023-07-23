@@ -185,11 +185,16 @@ class OpenAIFunctionsBrainPicking(BaseBrainPicking):
                 "description": "Get the chat history between you and the user and also get the relevant documents to answer the question. Always use that unless a very simple question is asked that a 5 years old could answer.",
                 "parameters": {"type": "object", "properties": {}},
             },
+            {
+                "name": "search_database",
+                "description": "You have access to a rich Knowledge Database however in order to be used you must ask a list of questions that will be used to search the database please reply with a list of questions that would aid in answer the user's quesion",
+                "parameters": {"type": "object", "properties": {}},
+            },
         ]
 
         # First, try to get an answer using just the question
         response = self._get_model_response(
-            messages=self._construct_prompt(question), functions=functions
+            messages=self._construct_prompt(question, functions=functions), functions=functions
         )
         formatted_response = format_answer(response)
 
