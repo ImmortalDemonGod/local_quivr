@@ -17,6 +17,10 @@ logger = get_logger(__name__)
 
 
 def format_answer(model_response: Dict[str, Any]) -> OpenAiAnswer:
+    print("MODEL RESPONSE: ", model_response)
+    logger.info("MODEL RESPONSE:", model_response)
+    print(logger.info("MODEL RESPONSE:", model_response))
+
     answer = model_response["choices"][0]["message"]
     content = answer["content"]
     function_call = None
@@ -129,19 +133,13 @@ class OpenAIFunctionsBrainPicking(BaseBrainPicking):
 
     def _get_context(self, question: str) -> str:
         """
-        Retrieve documents related to the question
+        Retrieve documents related to the question.
         """
         logger.info("Getting context")
 
         return self.vector_store.similarity_search(
             query=question
         )  # pyright: ignore reportPrivateUsage=none
-
-    def _context_can_answer_question(self, question: str, context: str) -> bool:
-        # Implement your logic here to check if the context can answer the question
-        # For example, you might check if the context contains certain keywords from the question
-        # Return True if the context can answer the question, False otherwise
-        pass
 
     def _construct_prompt(
         self, question: str, useContext: bool = False, useHistory: bool = False
@@ -154,7 +152,7 @@ class OpenAIFunctionsBrainPicking(BaseBrainPicking):
                 A person will ask you a question and you will provide a helpful answer.
                 Write the answer in the same language as the question.
                 You have access to functions to help you answer the question.
-                If you don't know the answer, just say that you don't know but be helpful and explain why you can't answer""",
+                If you don't know the answer, use the "get_history" function, "search_database" function or the "get_history_and_context" function""",
             }
         ]
 
@@ -173,22 +171,6 @@ class OpenAIFunctionsBrainPicking(BaseBrainPicking):
             system_messages.append({"role": "user", "content": context_message})
 
         system_messages.append({"role": "user", "content": question})
-
-        # Check if the context can't answer the question
-        if useContext:
-            context = self._get_context(question)
-            if not self._context_can_answer_question(question, context):
-                logger.info("Context can't answer the question, performing more database queries")
-                # Generate questions that if answered could be used to satisfy the question
-                questions = self._generate_questions(question)
-
-                # Query the database with each question
-                contexts = self._get_contexts(questions)
-
-                # Re-attempt to answer the question using the results of the database results
-                answer = self._get_best_answer(question, contexts)
-
-                system_messages.append({"role": "assistant", "content": answer})
 
         return system_messages
 
@@ -229,19 +211,13 @@ class OpenAIFunctionsBrainPicking(BaseBrainPicking):
             and formatted_response.function_call.name == "get_history_and_context"
         ):
             logger.info("Model called for history and context")
-            context = self._get_context(question)
-            if not self._context_can_answer_question(question, context):
-                logger.info("Context can't answer the question, performing more database queries")
-                # Generate questions that if answered could be used to satisfy the question
-                questions = self._generate_questions(question)
-
-                # Query the database with each question
-                contexts = self._get_contexts(questions)
-
-                # Re-attempt to answer the question using the results of the database results
-                answer = self._get_best_answer(question, contexts)
-
-                formatted_response.content = answer
+            response = self._get_model_response(
+                messages=self._construct_prompt(
+                    question, useContext=True, useHistory=True
+                ),
+                functions=[],
+            )
+            formatted_response = format_answer(response)
 
         # Update chat history
         chat_history = update_chat_history(
