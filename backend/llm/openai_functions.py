@@ -187,8 +187,8 @@ class OpenAIFunctionsBrainPicking(BaseBrainPicking):
             },
             {
                 "name": "search_database",
-                "description": "You have access to a rich Knowledge Database however in order to be used you must ask a list of questions that will be used to search the database please reply with a list of questions that would aid in answer the user's quesion",
-                "parameters": {"type": "object", "properties": {}},
+                "description": "You have access to a rich Knowledge Database. To use it, please reply with a list of questions that would aid in answering the user's question.",
+                "parameters": {"type": "object", "properties": {"questions": {"type": "array", "items": {"type": "string"}}}},
             },
         ]
 
