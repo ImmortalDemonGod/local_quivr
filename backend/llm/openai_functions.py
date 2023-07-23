@@ -228,9 +228,10 @@ class OpenAIFunctionsBrainPicking(BaseBrainPicking):
         if (
             formatted_response.function_call
             and formatted_response.function_call.name == "search_database"
+            and formatted_response.function_call.arguments is not None
         ):
             logger.info("Model called for search_database")
-            questions = formatted_response.function_call.arguments['questions']
+            questions = formatted_response.function_call.arguments.get('questions', [])
             for question in questions:
                 context = self._get_context(question)
                 logger.info(f"Context for question '{question}': {context}")
