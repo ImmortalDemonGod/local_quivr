@@ -224,6 +224,14 @@ class OpenAIFunctionsBrainPicking(BaseBrainPicking):
             )
             formatted_response = format_answer(response)
 
+        # Placeholder for search_database
+        if (
+            formatted_response.function_call
+            and formatted_response.function_call.name == "search_database"
+        ):
+            logger.info("Model called for search_database")
+            # TODO: Implement the logic for search_database
+
         # Update chat history
         chat_history = update_chat_history(
             chat_id=self.chat_id,
