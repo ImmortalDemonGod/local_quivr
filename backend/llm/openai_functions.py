@@ -194,7 +194,7 @@ class OpenAIFunctionsBrainPicking(BaseBrainPicking):
 
         # First, try to get an answer using just the question
         response = self._get_model_response(
-            messages=self._construct_prompt(question, functions=functions), functions=functions
+            messages=self._construct_prompt(question), functions=functions
         )
         formatted_response = format_answer(response)
 
